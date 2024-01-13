@@ -1,40 +1,46 @@
-import {useState} from "react";
-import {useDispatch} from "react-redux";
-import {loginThunk} from "../../redux/authSlice.js";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginThunk } from "../../redux/authSlice.js";
+import { useNavigate } from "react-router-dom";
 
-function LoginPages() {
 
-    const [name, setName] = useState("")
+export default function Login() {
+    const [userName, setUserName] = useState("")
     const [password, setPassword] = useState("")
-
     const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const { error } = useSelector((state) => state.auth);
 
-    const handelSubmit = (e) => {
-        e.preventDefault()
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        dispatch(loginThunk({ userName, password }));
+        navigate('/todos')
+    }
 
-        dispatch(loginThunk({name, password}))
-        console.log(dispatch(loginThunk))
+    const userToken = localStorage.getItem('token')
+
+    const handleLogout = () => {
+        localStorage.removeItem('token')
+        location.reload();
+    }
+
+    if (userToken) {
+        return (
+            <div>
+                <button onClick={handleLogout}>Logout</button>
+            </div>
+        )
     }
 
     return (
-        <div>
-            <form onSubmit={handelSubmit}>
-                <input
-                    type="text"
-                    placeholder="Имя пользователя"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
-                <input
-                    type="text"
-                    placeholder="Пароль"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <button type="submit" >submit</button>
+        <>
+            <form onSubmit={handleSubmit} className="login-form">
+                <input value={userName} onChange={(e) => setUserName(e.target.value)} type="text" placeholder="User Name"/>
+                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password"/>
+                <button className="button">Login</button>
+                {error && <p style={{color: "red"}}>Incorrect user name or password</p>}
             </form>
-        </div>
-    );
-}
+        </>
 
-export default LoginPages;
+    )
+}
